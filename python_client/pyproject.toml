@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "python_client"
+version = "0.1.0"
+description = "cs150project"
+authors = ["butterr12 <126962777+butterr12@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+cs150241project-networking = {git = "https://github.com/UPD-CS150-241/cs150241project_networking"}
+pygame = "^2.6.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
