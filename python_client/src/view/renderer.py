@@ -77,7 +77,7 @@ class Renderer:
     def render_play_again_button(self):
         button_width, button_height = 200, 50
         button_x = (self.screen.get_width() - button_width) // 2
-        button_y = (self.screen.get_height() // 2) + 100  
+        button_y = (self.screen.get_height() // 2) + 30  
 
         self.play_again_button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
         pygame.draw.rect(self.screen, (0, 128, 0), self.play_again_button_rect) 
