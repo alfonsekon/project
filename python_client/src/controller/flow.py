@@ -7,6 +7,7 @@ class GameController:
         self.renderer = renderer
         self.input_handler = InputHandler()
         self.running = True
+        self.winner_message_rendered = False
 
     def run_game(self):
         clock = pygame.time.Clock()
@@ -14,12 +15,29 @@ class GameController:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                elif self.game.game_over and event.type == pygame.MOUSEBUTTONDOWN:
+                # Check if the Play Again button is clicked
+                    mouse_pos = pygame.mouse.get_pos()
+                    if self.renderer.play_again_button_rect.collidepoint(mouse_pos):
+                        self.reset_game()  # Reset the game if Play Again is clicked
                 else:
                     self.input_handler.handle_event(event, self.game)
             
-            self.renderer.render_board(
-                self.game.board,
-                valid_moves=self.input_handler.valid_moves,  
-                selected_piece=self.input_handler.selected_piece  
-            )
+            if not self.game.game_over:
+                self.renderer.render_board(
+                    self.game.board,
+                    valid_moves=self.input_handler.valid_moves,  
+                    selected_piece=self.input_handler.selected_piece  
+                )
+            else:
+                self.renderer.render_winner(self.game.winner)
+                self.renderer.render_play_again_button()
+             
+            pygame.display.flip()
             clock.tick(30)
+
+    def reset_game(self):
+        """Reset the game state and input handler."""
+        self.game.reset()  # Reset the game state
+        self.input_handler.reset()  # Reset the input handler
+        self.winner_message_rendered = False

@@ -1,6 +1,7 @@
 from model.board import Board
 from model.piece import Mime
 from view.renderer import Renderer
+from controller.input_handler import InputHandler
 
 class Game:
     def __init__(self):
@@ -11,6 +12,7 @@ class Game:
         self.winner = None
         self.game_over = False
         self.renderer = Renderer()
+        self.input_handler = InputHandler()
 
     def switch_player(self):
         self.current_player = "Player 2" if self.current_player == "Player 1" else "Player 1"
@@ -39,3 +41,11 @@ class Game:
                 
 
         #self.winner = self.board.check_for_winner()
+
+    def reset(self):
+        self.board = Board() 
+        self.current_player = "Player 1"  
+        self.counter = 0 
+        self.max_moves = 3  
+        self.winner = None  
+        self.game_over = False

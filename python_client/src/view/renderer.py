@@ -66,10 +66,24 @@ class Renderer:
         print(f"Rendering winner: {winner}")  
         overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
         overlay.fill((255, 255, 255, 153))
-        font = pygame.font.Font(None, 72)
+        font = pygame.font.Font(None, 50)
         text = font.render(f"{winner} wins!", True, (255, 0, 0))
         text_rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
         self.screen.blit(overlay, (0, 0))
         self.screen.blit(text, text_rect)
         pygame.display.flip()
         #pygame.display.update()
+
+    def render_play_again_button(self):
+        button_width, button_height = 200, 50
+        button_x = (self.screen.get_width() - button_width) // 2
+        button_y = (self.screen.get_height() // 2) + 100  
+
+        self.play_again_button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
+        pygame.draw.rect(self.screen, (0, 128, 0), self.play_again_button_rect) 
+
+        font = pygame.font.Font(None, 36)
+        text_surface = font.render("Play Again", True, (255, 255, 255))  
+        text_rect = text_surface.get_rect(center=self.play_again_button_rect.center)
+        self.screen.blit(text_surface, text_rect)
+

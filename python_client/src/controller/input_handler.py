@@ -1,19 +1,24 @@
 import pygame
 from model.board import Board
 from model.piece import Piece
-from model.game import Game
+# from model.game import Game
+from view.renderer import Renderer
 
 class InputHandler:
     def __init__(self):
         self.selected_piece = None
-        self.valid_moves = []  
+        self.valid_moves = [] 
+        self.winner_rendered = False 
+        self.renderer = Renderer()
 
     def handle_event(self, event, game):
-        if game.game_over:
+        if game.game_over and not self.winner_rendered:
             print(f"Game over! {game.winner} wins!")
-            return
+            self.renderer.render_winner(game.winner)
+            self.winner_rendered = True
+            #return
             
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN and not game.game_over:
             x, y = event.pos
             print(x)
             print(y)
@@ -58,3 +63,9 @@ class InputHandler:
                     print(f"Valid moves: {self.valid_moves}")
                 else:
                     print("No valid piece selected or wrong player!")
+
+    def reset(self):
+        """Reset the input handler state."""
+        self.selected_piece = None
+        self.valid_moves = []
+        self.winner_message_rendered = False
