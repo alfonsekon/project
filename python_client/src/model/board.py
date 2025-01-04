@@ -1,24 +1,19 @@
 from model.piece import Piece, Mime, Goldqueen, Sighducky, Clefairy
+from model.piece_initializer import PieceInitializer
 
 class Board:
     def __init__(self):
         # 3x4 board with initial positions
         self.grid = [[None for _ in range(3)] for _ in range(4)]
+        self.piece_initializer = PieceInitializer()
         self.initialize_pieces()
         self.captured_pieces_player1 = []
         self.captured_pieces_player2 = []
 
     def initialize_pieces(self):
-        # Add initial pieces (e.g., Mime, Chick, Sighducky, etc.)
-        self.grid[0][0] = Goldqueen("Player 1")
-        self.grid[3][0] = Goldqueen("Player 2")
-        self.grid[0][1] = Mime("Player 1")
-        self.grid[3][1] = Mime("Player 2")
-        self.grid[0][2] = Sighducky("Player 1")
-        self.grid[3][2] = Sighducky("Player 2")
-        self.grid[1][1] = Clefairy("Player 1")
-        self.grid[2][1] = Clefairy("Player 2")
-        # Add other pieces...
+        pieces = self.piece_initializer.initialize_pieces()  # Get pieces and their initial positions
+        for x, y, piece in pieces:
+            self.grid[x][y] = piece
 
     def move_piece(self, start, end):
         print("entered real move_piece")
