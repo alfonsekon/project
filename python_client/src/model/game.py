@@ -1,7 +1,8 @@
 from model.board import Board
-from model.piece import Mime
+from model.piece import Mime, Piece
 from view.renderer import Renderer
 from controller.input_handler import InputHandler
+from typing import List
 
 class Game:
     def __init__(self):
@@ -26,8 +27,7 @@ class Game:
 
     def check_winner(self):
         print("entered check_winner")
-        opponent = "Player 1" if self.current_player == "Player 2" else "Player 2"
-        captured_pieces = self.board.get_captured_pieces(self.current_player)
+        captured_pieces: List[Piece] = self.board.get_captured_pieces(self.current_player)
         print(self.current_player)
         print(captured_pieces)
 

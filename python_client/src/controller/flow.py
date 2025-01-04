@@ -1,8 +1,12 @@
 import pygame
 from controller.input_handler import InputHandler
+from view.renderer import Renderer
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from model.game import Game
 
 class GameController:
-    def __init__(self, game, renderer):
+    def __init__(self, game: "Game", renderer: Renderer):
         self.game = game
         self.renderer = renderer
         self.input_handler = InputHandler()

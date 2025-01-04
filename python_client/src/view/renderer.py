@@ -1,7 +1,8 @@
 import pygame
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from model.piece import Piece  
+from model.board import Board
 
 class Renderer:
     def __init__(self):
@@ -47,7 +48,7 @@ class Renderer:
         self.calculate_cell_size()  # Recalculate before returning, in case the window size changed.
         return self.cell_size
 
-    def render_board(self, board, valid_moves: List[Tuple[int, int]] = None, selected_piece: Piece = None):
+    def render_board(self, board: Board, valid_moves: Optional[List[Tuple[int, int]]] = None, selected_piece: Optional[Piece] = None):
         """Renders the board with optional highlights for valid moves, centered on the screen."""
         self.calculate_cell_size()
         self.screen.fill((255, 255, 255))  # Background color
@@ -93,7 +94,7 @@ class Renderer:
         pygame.display.flip()
 
     
-    def render_winner(self, winner: str):
+    def render_winner(self, winner: str | None):
         """
         Renders a "Player _ wins" message with a semi-transparent white background.
 

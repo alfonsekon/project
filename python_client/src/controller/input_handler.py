@@ -1,17 +1,19 @@
 import pygame
-from model.board import Board
 from model.piece import Piece
-# from model.game import Game
 from view.renderer import Renderer
+from typing import Optional, List, Tuple, TYPE_CHECKING, cast
+if TYPE_CHECKING:
+    from model.game import Game
 
 class InputHandler:
     def __init__(self):
-        self.selected_piece = None
-        self.valid_moves = [] 
+        self.selected_piece: Optional[Piece] = None
+        self.valid_moves: List[Tuple[int, int]] = [] 
         self.winner_rendered = False 
         self.renderer = Renderer()
+        self.orig_coords: Optional[Tuple[int, int]]
 
-    def handle_event(self, event, game):
+    def handle_event(self, event: pygame.event.Event, game: "Game"):
         if game.game_over and not self.winner_rendered:
             print(f"Game over! {game.winner} wins!")
             #self.renderer.render_winner(game.winner)
@@ -43,7 +45,7 @@ class InputHandler:
             grid_x, grid_y = (y - y_offset) // cell_size, (x - x_offset) // cell_size
             print(f"row: {grid_x}")
             print(f"col: {grid_y}")
-            clicked_piece = game.board.grid[grid_x][grid_y]
+            clicked_piece = cast(Optional[Piece], game.board.grid[grid_x][grid_y])
 
             if clicked_piece and clicked_piece.owner == game.current_player:
                 # reselect new piece if misclicked/change of mind
@@ -60,24 +62,25 @@ class InputHandler:
                     print(grid_x)
                     print(grid_y)
                     print("entered movepiece")
-                    game.board.move_piece(self.orig_coords, (grid_x, grid_y))
-                    game.check_winner()
-                    game.increment_counter()
-                    game.board.print_captured_pieces()
-                    self.selected_piece = None
-                    self.valid_moves = []  # Reset valid moves after the move
-                    self.orig_coords = None
+                    if self.orig_coords is not None:
+                        game.board.move_piece(self.orig_coords, (grid_x, grid_y))
+                        game.check_winner()
+                        game.increment_counter()
+                        game.board.print_captured_pieces()
+                        self.selected_piece = None
+                        self.valid_moves = []  # Reset valid moves after the move
+                        self.orig_coords = None
                 else:
                     print("Invalid move!")
             else:
                 # Select the piece if it belongs to the current player
-                piece = game.board.grid[grid_x][grid_y]
+                piece = cast(Piece, game.board.grid[grid_x][grid_y])
                 if piece and piece.owner == game.current_player:
                     self.selected_piece = piece
                     print(self.selected_piece)
                     # Calculate valid moves as soon as the piece is selected
                     self.valid_moves = self.selected_piece.valid_moves((grid_x, grid_y), game.board)
-                    self.orig_coords = [grid_x, grid_y]
+                    self.orig_coords = (grid_x, grid_y)
                     print(f"Valid moves: {self.valid_moves}")
                 else:
                     print("No valid piece selected or wrong player!")

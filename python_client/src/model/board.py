@@ -1,21 +1,22 @@
-from model.piece import Piece, Mime, Goldqueen, Sighducky, Clefairy
+from model.piece import Piece
 from model.piece_initializer import PieceInitializer
+from typing import List, Optional, Tuple
 
 class Board:
     def __init__(self):
         # 3x4 board with initial positions
-        self.grid = [[None for _ in range(5)] for _ in range(7)]
+        self.grid: List[List[Optional[Piece]]] = [[None for _ in range(5)] for _ in range(7)]
         self.piece_initializer = PieceInitializer()
         self.initialize_pieces()
-        self.captured_pieces_player1 = []
-        self.captured_pieces_player2 = []
+        self.captured_pieces_player1: List[Piece] = []
+        self.captured_pieces_player2: List[Piece] = []
 
     def initialize_pieces(self):
         pieces = self.piece_initializer.initialize_pieces()  # Get pieces and their initial positions
         for x, y, piece in pieces:
             self.grid[x][y] = piece
 
-    def move_piece(self, start, end):
+    def move_piece(self, start: Tuple[int, int], end: Tuple[int, int]):
         print("entered real move_piece")
         print(f"start[0]: {start[0]}, start[1]: {start[1]}")
         print(f"end[0]: {end[0]}, end[1]: {end[1]}")
@@ -34,7 +35,7 @@ class Board:
             self.grid[end[0]][end[1]] = piece
             self.grid[start[0]][start[1]] = None
     
-    def get_captured_pieces(self, player):
+    def get_captured_pieces(self, player: str) -> List[Piece]:
         if player == "Player 1":
             return self.captured_pieces_player1
         else:

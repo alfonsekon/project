@@ -1,9 +1,9 @@
 from model.piece import Piece, Mime, Goldqueen, Sighducky, Clefairy
-from typing import List, Tuple
+from typing import Sequence, Tuple
 
 class PieceInitializer:
     @staticmethod
-    def initialize_pieces() -> List[Tuple[int, int, Piece]]:
+    def initialize_pieces() -> Sequence[Tuple[int, int, Piece]]:
         pieces = [
             (0, 0, Goldqueen("Player 1")),
             (3, 0, Goldqueen("Player 2")),
