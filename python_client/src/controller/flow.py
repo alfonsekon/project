@@ -17,6 +17,9 @@ class GameController:
                 else:
                     self.input_handler.handle_event(event, self.game)
             
-            # Render game state
-            self.renderer.render_board(self.game.board)
+            self.renderer.render_board(
+                self.game.board,
+                valid_moves=self.input_handler.valid_moves,  
+                selected_piece=self.input_handler.selected_piece  
+            )
             clock.tick(30)

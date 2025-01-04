@@ -6,9 +6,13 @@ from model.game import Game
 class InputHandler:
     def __init__(self):
         self.selected_piece = None
-        self.valid_moves = []  # Store valid moves
+        self.valid_moves = []  
 
     def handle_event(self, event, game):
+        if game.game_over:
+            print(f"Game over! {game.winner} wins!")
+            return
+            
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
             print(x)
@@ -34,7 +38,9 @@ class InputHandler:
                     print(grid_y)
                     print("entered movepiece")
                     game.board.move_piece(self.orig_coords, (grid_x, grid_y))
+                    game.check_winner()
                     game.increment_counter()
+                    game.board.print_captured_pieces()
                     self.selected_piece = None
                     self.valid_moves = []  # Reset valid moves after the move
                     self.orig_coords = None
