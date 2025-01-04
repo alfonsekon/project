@@ -14,7 +14,7 @@ class InputHandler:
     def handle_event(self, event, game):
         if game.game_over and not self.winner_rendered:
             print(f"Game over! {game.winner} wins!")
-            self.renderer.render_winner(game.winner)
+            #self.renderer.render_winner(game.winner)
             self.winner_rendered = True
             #return
             
@@ -65,7 +65,7 @@ class InputHandler:
                     print("No valid piece selected or wrong player!")
 
     def reset(self):
-        """Reset the input handler state."""
+
         self.selected_piece = None
         self.valid_moves = []
         self.winner_message_rendered = False
