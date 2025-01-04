@@ -19,10 +19,28 @@ class InputHandler:
             #return
             
         if event.type == pygame.MOUSEBUTTONDOWN and not game.game_over:
+            cell_size = self.renderer.get_cell_size()
+            print(cell_size)
+            board_width = cell_size * self.renderer.cols
+            board_height = cell_size * self.renderer.rows
+
+            x_offset = (self.renderer.screen.get_width() - board_width) // 2
+            y_offset = (self.renderer.screen.get_height() - board_height) // 2
+            # board_width = self.renderer.screen.get_width() - x_offset*2
+            # board_height = self.renderer.screen.get_height() - x_offset*2
+
             x, y = event.pos
-            print(x)
-            print(y)
-            grid_x, grid_y = y // 100, x // 100
+            print(f"x: {x}")
+            print(f"y: {y}")
+            print(f"board width: {board_width}")
+            print(f"board height: {board_height}")
+            print(f"x_offset: {x_offset}")
+            print(f"y_offset: {y_offset}")
+            screen_height = self.renderer.screen.get_height()
+            screen_width = self.renderer.screen.get_width()
+            print(f"screen_height: {screen_height}")
+            print(f"screen_width: {screen_width}")
+            grid_x, grid_y = (y - y_offset) // cell_size, (x - x_offset) // cell_size
             print(f"row: {grid_x}")
             print(f"col: {grid_y}")
             clicked_piece = game.board.grid[grid_x][grid_y]

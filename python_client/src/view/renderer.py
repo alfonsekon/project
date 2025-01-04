@@ -6,9 +6,12 @@ from model.piece import Piece
 class Renderer:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((300, 400))
+        self.screen = pygame.display.set_mode((500, 700), pygame.RESIZABLE)
         pygame.display.set_caption("Dobutsu Shogi")
         self.images = self.load_piece_images()
+        self.rows = 7  # Number of rows on the board
+        self.cols = 5
+        #self.cell_size = 100
 
     def load_piece_images(self):
         """Load images for each piece from the assets folder."""
@@ -26,35 +29,69 @@ class Renderer:
             images[key] = pygame.transform.scale(images[key], (80, 80))
         return images
 
+    def calculate_cell_size(self):
+        """Calculate the cell size dynamically based on the window size."""
+        screen_width, screen_height = pygame.display.get_window_size()
+        
+        cell_width = screen_width // self.cols
+        cell_height = screen_height // self.rows
+        self.cell_size = min(cell_width, cell_height)
+        # print(screen_width)
+        # print(screen_height)
+        # print(cell_width)
+        # print(cell_height)
+        # print(self.cell_size)
+    
+    def get_cell_size(self):
+        """Ensure cell size is calculated and return it."""
+        self.calculate_cell_size()  # Recalculate before returning, in case the window size changed.
+        return self.cell_size
+
     def render_board(self, board, valid_moves: List[Tuple[int, int]] = None, selected_piece: Piece = None):
-        """Renders the board with optional highlights for valid moves"""
+        """Renders the board with optional highlights for valid moves, centered on the screen."""
+        self.calculate_cell_size()
         self.screen.fill((255, 255, 255))  # Background color
+
+        board_width = self.cell_size * self.cols
+        board_height = self.cell_size * self.rows
+
+        x_offset = (self.screen.get_width() - board_width) // 2
+        y_offset = (self.screen.get_height() - board_height) // 2
+        
 
         for y, row in enumerate(board.grid):
             for x, piece in enumerate(row):
-                rect = pygame.Rect(x * 100, y * 100, 100, 100)
-                
-                # print(f"Valid Moves: {valid_moves}")
-                # print(f"x:{x}, y:{y}")
+                starting_x = x * self.cell_size + x_offset
+                starting_y = y * self.cell_size + y_offset
+                rect = pygame.Rect(
+                    starting_x,
+                    starting_y,
+                    self.cell_size,
+                    self.cell_size
+                )
+
+                # Highlight valid moves
                 if valid_moves and (y, x) in valid_moves:
-                    pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)  
-                    inner_rect = rect.inflate(-4, -4)  
-                    pygame.draw.rect(self.screen, (0, 255, 0), inner_rect)  
+                    pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)
+                    inner_rect = rect.inflate(-4, -4)
+                    pygame.draw.rect(self.screen, (0, 255, 0), inner_rect)
                 else:
-                    pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)  # Normal border color
+                    pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)
 
-                # # Draw the piece's first letter at its position if it's not None
-                # if piece:
-                #     font = pygame.font.Font(None, 36)
-                #     text = font.render(piece.name[0], True, (0, 0, 0))  # Display piece's first letter
-                #     self.screen.blit(text, (x * 100 + 35, y * 100 + 35))
-
+                # Draw the piece if present
                 if piece:
-                    image = self.images.get(piece.name)  # Get the corresponding image for the piece
+                    image = self.images.get(piece.name)
                     if image:
-                        self.screen.blit(image, (x * 100 + 10, y * 100 + 10)) 
+                        image_size = self.cell_size - 20
+                        image = pygame.transform.scale(image, (image_size, image_size))
+                        self.screen.blit(
+                            image,
+                            (x * self.cell_size + x_offset + (self.cell_size - image_size) // 2,
+                            y * self.cell_size + y_offset + (self.cell_size - image_size) // 2)
+                        )
 
         pygame.display.flip()
+
     
     def render_winner(self, winner: str):
         """
