@@ -1,5 +1,6 @@
 from model.piece import Piece, Mime, Goldqueen, Sighducky, Clefairy
 from model.piece_initializer import PieceInitializer
+from view.sound import AudioManager
 
 class Board:
     def __init__(self):
@@ -9,6 +10,8 @@ class Board:
         self.captured_pieces_player1 = []
         self.captured_pieces_player2 = []
         self.moved_piece = False
+        self.audio_manager = AudioManager()
+        self.audio_manager.load_sound("piece move", "src/view/assets/piece1.mp3")
 
     def initialize_pieces(self):
         pieces = self.piece_initializer.initialize_pieces()  # Get pieces and their initial positions
@@ -47,6 +50,8 @@ class Board:
             self.grid[start[0]][start[1]] = None
             self.moved_piece = True
             
+            if self.audio_manager:
+                self.audio_manager.play_sound("piece move")
     
     def get_captured_pieces(self, player):
         if player == "Player 1":
