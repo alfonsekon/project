@@ -1,17 +1,20 @@
 import pygame
 import os
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from model.piece import Piece  
-from model.board import Board
 
 class Renderer:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((500, 700), pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode((600, 700), pygame.RESIZABLE)
         pygame.display.set_caption("Dobutsu Shogi")
         self.images = self.load_piece_images()
-        self.rows = 7  # Number of rows on the board
-        self.cols = 5
+        self.rows = 8  # Number of rows on the board
+        self.cols = 7
+        self.captured_piece_positions = {
+            "Player 1": [],
+            "Player 2": []
+        }
         #self.cell_size = 100
 
     def load_piece_images(self):
@@ -48,7 +51,48 @@ class Renderer:
         self.calculate_cell_size()  # Recalculate before returning, in case the window size changed.
         return self.cell_size
 
-    def render_board(self, board: Board, valid_moves: Optional[List[Tuple[int, int]]] = None, selected_piece: Optional[Piece] = None):
+    def render_captured_pieces(self, board):
+        """Renders captured pieces for both players and tracks their positions for interaction."""
+        # Coordinates for rendering captured pieces
+        top_y_offset = 50
+        bottom_y_offset = self.screen.get_height() - 260
+        x_offset = 10
+        piece_spacing = 80
+        row_spacing = 80
+        max_pieces_per_row = 6
+        font = pygame.font.Font(None, 36)
+
+        # Player 1's captured pieces
+        p1_captured_label = font.render("Player 1 Captured Pieces", True, (0, 0, 0))
+        self.screen.blit(p1_captured_label, (x_offset, top_y_offset - 30))
+        # print("Player 1's Captured Pieces Positions:")
+        for i, piece in enumerate(board.captured_pieces_player1):
+            row = i // max_pieces_per_row
+            col = i % max_pieces_per_row
+            image = self.images.get(piece.name)
+            if image:
+                image = pygame.transform.scale(image, (70, 70))
+                rect = self.screen.blit(image, (x_offset + col * piece_spacing, top_y_offset + row * row_spacing))
+                self.captured_piece_positions["Player 1"].append((piece, rect))
+                # Print the piece name and its position
+                # print(f"  {piece.name}: {rect.topleft}")
+
+        # Player 2's captured pieces
+        p2_captured_label = font.render("Player 2 Captured Pieces", True, (0, 0, 0))
+        self.screen.blit(p2_captured_label, (x_offset, bottom_y_offset - 30))
+        # print("Player 2's Captured Pieces Positions:")
+        for i, piece in enumerate(board.captured_pieces_player2):
+            row = i // max_pieces_per_row
+            col = i % max_pieces_per_row
+            image = self.images.get(piece.name)
+            if image:
+                image = pygame.transform.scale(image, (70, 70))
+                rect = self.screen.blit(image, (x_offset + col * piece_spacing, bottom_y_offset + row * row_spacing))
+                self.captured_piece_positions["Player 2"].append((piece, rect))
+                # Print the piece name and its position
+                # print(f"  {piece.name}: {rect.topleft}")
+
+    def render_board(self, board, valid_moves: List[Tuple[int, int]] = None, selected_piece: Piece = None, captured_pieces: List[Piece] = None, current_player = "Player 1"):
         """Renders the board with optional highlights for valid moves, centered on the screen."""
         self.calculate_cell_size()
         self.screen.fill((255, 255, 255))  # Background color
@@ -72,13 +116,14 @@ class Renderer:
                 )
 
                 # Highlight valid moves
-                if valid_moves and (y, x) in valid_moves:
+                if piece and piece.protected: #lalagyan ko pa ng or opponent.piece.protected
+                    pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)  # Default border for the cell
+                elif valid_moves and (y, x) in valid_moves:
                     pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)
                     inner_rect = rect.inflate(-4, -4)
                     pygame.draw.rect(self.screen, (0, 255, 0), inner_rect)
                 else:
                     pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)
-
                 # Draw the piece if present
                 if piece:
                     image = self.images.get(piece.name)
@@ -91,10 +136,43 @@ class Renderer:
                             y * self.cell_size + y_offset + (self.cell_size - image_size) // 2)
                         )
 
+        self.render_captured_pieces(board)
+        self.render_current_player(current_player)
+
         pygame.display.flip()
 
+    def render_current_player(self, current_player):
+        """Renders the current player label on the right side of the screen."""
+        font = pygame.font.Font(None, 36)
+        screen_width = self.screen.get_width()
+        screen_height = self.screen.get_height()
+
+        # Render the "Current Player:" label
+        label_text = "Current Player:"
+        current_player_label = font.render(label_text, True, (0, 0, 0))
+        label_width = current_player_label.get_width()
+        
+        # Calculate position for the label (top-right corner)
+        label_x = screen_width - label_width - 200  # Add some padding from the right edge
+        label_y = screen_height * 0.2  # 20% down from the top
+
+        self.screen.blit(current_player_label, (label_x, label_y))
+
+        # Render the current player's name below the label
+        player_text = "Player 1" if current_player == "Player 1" else "Player 2"
+        current_player_name = font.render(player_text, True, (0, 0, 0))
+        name_width = current_player_name.get_width()
+
+        # Position the player's name centered below the label
+        name_x = screen_width - name_width - 100  # Align with label_x
+        name_y = label_y 
+
+        self.screen.blit(current_player_name, (name_x, name_y))
+
+            
+
     
-    def render_winner(self, winner: str | None):
+    def render_winner(self, winner: str):
         """
         Renders a "Player _ wins" message with a semi-transparent white background.
 

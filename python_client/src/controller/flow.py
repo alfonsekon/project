@@ -1,12 +1,8 @@
 import pygame
 from controller.input_handler import InputHandler
-from view.renderer import Renderer
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from model.game import Game
 
 class GameController:
-    def __init__(self, game: "Game", renderer: Renderer):
+    def __init__(self, game, renderer):
         self.game = game
         self.renderer = renderer
         self.input_handler = InputHandler()
@@ -27,12 +23,15 @@ class GameController:
                         self.reset_game()  
                 else:
                     self.input_handler.handle_event(event, self.game)
+                    self.input_handler.handle_click(event)
             
             if not self.game.game_over:
                 self.renderer.render_board(
                     self.game.board,
                     valid_moves=self.input_handler.valid_moves,  
-                    selected_piece=self.input_handler.selected_piece  
+                    selected_piece=self.input_handler.selected_piece,
+                    current_player=self.game.current_player
+                    # captured_pieces=self.game.board.get_captured_pieces(self.game.current_player)
                 )
             else:
                 # if not self.play_again_button_rendered:
@@ -44,7 +43,7 @@ class GameController:
                     self.renderer.render_board(
                         self.game.board,
                         valid_moves=self.input_handler.valid_moves,  
-                        selected_piece=self.input_handler.selected_piece  
+                        selected_piece=self.input_handler.selected_piece,
                     ) # force to show final board state
                     pygame.display.flip()  
                     self.wait_after_game_over = False
