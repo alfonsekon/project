@@ -35,7 +35,7 @@ class GameController:
                     valid_moves=self.input_handler.valid_moves,  
                     selected_piece=self.input_handler.selected_piece  
                 )
-                self.renderer.render_current_player(self.game.current_player)
+                # self.renderer.render_current_player(self.game.current_player)
             else:
                 # if not self.play_again_button_rendered:
                 #     self.renderer.render_winner(self.game.winner)

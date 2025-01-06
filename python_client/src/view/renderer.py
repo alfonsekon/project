@@ -10,7 +10,7 @@ class Renderer:
     def __init__(self):
         pygame.init()
         self.screen: pygame.surface.Surface = pygame.display.set_mode((950, 700), pygame.RESIZABLE)
-        pygame.display.set_caption("Dobutsu Shogi")
+        pygame.display.set_caption("Pokemon Saga")
         self.images = self.load_piece_images()
         self.rows: int = 8
         self.cols: int = 7
@@ -237,52 +237,52 @@ class Renderer:
         # print(f"captured_rects: {self.captured_piece_rects}")
         return self.captured_piece_rects
 
-    def render_current_player(self, current_player: str) -> Dict[str, List[Tuple[str, pygame.Rect]]]:
-        """Render current player label and name dynamically on the screen."""
-        self.current_player_rects: Dict[str, List[Tuple[str, pygame.Rect]]] = {"Player 1": [], "Player 2": []}
-        self.calculate_cell_size()
-        cell_size = self.cell_size
-        right_margin = 300
-        screen_width, screen_height = self.screen.get_width(), self.screen.get_height()
+    # def render_current_player(self, current_player: str) -> Dict[str, List[Tuple[str, pygame.Rect]]]:
+    #     """Render current player label and name dynamically on the screen."""
+    #     self.current_player_rects: Dict[str, List[Tuple[str, pygame.Rect]]] = {"Player 1": [], "Player 2": []}
+    #     self.calculate_cell_size()
+    #     cell_size = self.cell_size
+    #     right_margin = 300
+    #     screen_width, screen_height = self.screen.get_width(), self.screen.get_height()
 
-        # Calculate available space for the board
-        available_width = screen_width - right_margin
-        available_height = screen_height
+    #     # Calculate available space for the board
+    #     available_width = screen_width - right_margin
+    #     available_height = screen_height
 
-        # Calculate cell size to fit within available space
-        cell_width = available_width // self.cols
-        cell_height = available_height // self.rows
-        self.cell_size = min(cell_width, cell_height)
+    #     # Calculate cell size to fit within available space
+    #     cell_width = available_width // self.cols
+    #     cell_height = available_height // self.rows
+    #     self.cell_size = min(cell_width, cell_height)
 
-        # Calculate offsets for centering the board
-        board_width = self.cell_size * self.cols
-        board_height = self.cell_size * self.rows
-        self.x_offset = (available_width - board_width) // 2
-        self.y_offset = (screen_height - board_height) // 2
+    #     # Calculate offsets for centering the board
+    #     board_width = self.cell_size * self.cols
+    #     board_height = self.cell_size * self.rows
+    #     self.x_offset = (available_width - board_width) // 2
+    #     self.y_offset = (screen_height - board_height) // 2
 
-        # Define current player area
-        current_player_area_start_x = board_width + self.x_offset + 20  # Right of the board
-        current_player_area_start_y = self.y_offset
+    #     # Define current player area
+    #     current_player_area_start_x = board_width + self.x_offset + 20  # Right of the board
+    #     current_player_area_start_y = self.y_offset
 
-        # Render text for current player label
-        font = pygame.font.Font(None, cell_size // 3)
-        player_label_text = "Current Player:"
-        player_label = font.render(player_label_text, True, (0, 0, 0))  # Black text
-        player_label_x = current_player_area_start_x
-        player_label_y = current_player_area_start_y + screen_height * 0.75 # Padding above the name
-        self.screen.blit(player_label, (player_label_x, player_label_y))
+    #     # Render text for current player label
+    #     font = pygame.font.Font(None, cell_size // 3)
+    #     player_label_text = "Current Player:"
+    #     player_label = font.render(player_label_text, True, (0, 0, 0))  # Black text
+    #     player_label_x = current_player_area_start_x
+    #     player_label_y = current_player_area_start_y + screen_height * 0.75 # Padding above the name
+    #     self.screen.blit(player_label, (player_label_x, player_label_y))
 
-        # Render current player's name
-        player_name = "Player 1" if current_player == "Player 1" else "Player 2"
-        current_player_name = font.render(player_name, True, (0, 0, 0))
-        name_width = current_player_name.get_width()
+    #     # Render current player's name
+    #     player_name = "Player 1" if current_player == "Player 1" else "Player 2"
+    #     current_player_name = font.render(player_name, True, (0, 0, 0))
+    #     name_width = current_player_name.get_width()
 
-        # Position the player's name below the label
-        name_x = current_player_area_start_x + (cell_size // 2) - (name_width // 2)  # Center name under the label
-        name_y = player_label_y + player_label.get_height() + 10  # Padding below the label
-        self.screen.blit(current_player_name, (name_x, name_y))
+    #     # Position the player's name below the label
+    #     name_x = current_player_area_start_x + (cell_size // 2) - (name_width // 2)  # Center name under the label
+    #     name_y = player_label_y + player_label.get_height() + 10  # Padding below the label
+    #     self.screen.blit(current_player_name, (name_x, name_y))
 
-        return self.current_player_rects
+    #     return self.current_player_rects
 
     def render_play_again_button(self):
         button_width, button_height = 200, 50

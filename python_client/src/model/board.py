@@ -40,11 +40,11 @@ class Board:
             temp_grid[end[0]][end[1]] = piece
             temp_grid[start[0]][start[1]] = None
 
-            # Check if the move puts the player's own protected pieces in danger
-            protected_pieces: List[Tuple[Piece, Tuple[int, int]]] = [
-                (p, (r, c)) for r, row in enumerate(temp_grid) for c, p in enumerate(row)
-                if p and p.protected and p.owner == piece.owner
-            ]
+            # # Check if the move puts the player's own protected pieces in danger
+            # protected_pieces: List[Tuple[Piece, Tuple[int, int]]] = [
+            #     (p, (r, c)) for r, row in enumerate(temp_grid) for c, p in enumerate(row)
+            #     if p and p.protected and p.owner == piece.owner
+            # ]
             opponent_moves = game.get_available_pieces_and_moves_opp()
             # if self.renderer.render_captured_pieces is not None:
             #     if target_piece is None and self.drop_captured_piece:
