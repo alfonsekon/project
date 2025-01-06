@@ -1,20 +1,19 @@
 import pygame
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Optional, TYPE_CHECKING, Sequence, Dict
 from model.piece import Piece  
+if TYPE_CHECKING:
+    from model.game import Game
+    from model.board import Board
 
 class Renderer:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((600, 700), pygame.RESIZABLE)
+        self.screen: pygame.surface.Surface = pygame.display.set_mode((950, 700), pygame.RESIZABLE)
         pygame.display.set_caption("Dobutsu Shogi")
         self.images = self.load_piece_images()
-        self.rows = 8  # Number of rows on the board
-        self.cols = 7
-        self.captured_piece_positions = {
-            "Player 1": [],
-            "Player 2": []
-        }
+        self.rows: int = 8
+        self.cols: int = 7
         #self.cell_size = 100
 
     def load_piece_images(self):
@@ -36,10 +35,20 @@ class Renderer:
     def calculate_cell_size(self):
         """Calculate the cell size dynamically based on the window size."""
         screen_width, screen_height = pygame.display.get_window_size()
-        
-        cell_width = screen_width // self.cols
-        cell_height = screen_height // self.rows
+        right_margin = 300
+        screen_height = self.screen.get_height()
+        screen_width = self.screen.get_width()
+
+        # Calculate available space for the board
+        available_width = screen_width - right_margin
+        available_height = screen_height
+
+        # Calculate cell size to fit within available space
+        cell_width = available_width // self.cols
+        cell_height = available_height // self.rows
         self.cell_size = min(cell_width, cell_height)
+
+        return self.cell_size
         # print(screen_width)
         # print(screen_height)
         # print(cell_width)
@@ -51,57 +60,28 @@ class Renderer:
         self.calculate_cell_size()  # Recalculate before returning, in case the window size changed.
         return self.cell_size
 
-    def render_captured_pieces(self, board):
-        """Renders captured pieces for both players and tracks their positions for interaction."""
-        # Coordinates for rendering captured pieces
-        top_y_offset = 50
-        bottom_y_offset = self.screen.get_height() - 260
-        x_offset = 10
-        piece_spacing = 80
-        row_spacing = 80
-        max_pieces_per_row = 6
-        font = pygame.font.Font(None, 36)
-
-        # Player 1's captured pieces
-        p1_captured_label = font.render("Player 1 Captured Pieces", True, (0, 0, 0))
-        self.screen.blit(p1_captured_label, (x_offset, top_y_offset - 30))
-        # print("Player 1's Captured Pieces Positions:")
-        for i, piece in enumerate(board.captured_pieces_player1):
-            row = i // max_pieces_per_row
-            col = i % max_pieces_per_row
-            image = self.images.get(piece.name)
-            if image:
-                image = pygame.transform.scale(image, (70, 70))
-                rect = self.screen.blit(image, (x_offset + col * piece_spacing, top_y_offset + row * row_spacing))
-                self.captured_piece_positions["Player 1"].append((piece, rect))
-                # Print the piece name and its position
-                # print(f"  {piece.name}: {rect.topleft}")
-
-        # Player 2's captured pieces
-        p2_captured_label = font.render("Player 2 Captured Pieces", True, (0, 0, 0))
-        self.screen.blit(p2_captured_label, (x_offset, bottom_y_offset - 30))
-        # print("Player 2's Captured Pieces Positions:")
-        for i, piece in enumerate(board.captured_pieces_player2):
-            row = i // max_pieces_per_row
-            col = i % max_pieces_per_row
-            image = self.images.get(piece.name)
-            if image:
-                image = pygame.transform.scale(image, (70, 70))
-                rect = self.screen.blit(image, (x_offset + col * piece_spacing, bottom_y_offset + row * row_spacing))
-                self.captured_piece_positions["Player 2"].append((piece, rect))
-                # Print the piece name and its position
-                # print(f"  {piece.name}: {rect.topleft}")
-
-    def render_board(self, board, valid_moves: List[Tuple[int, int]] = None, selected_piece: Piece = None, captured_pieces: List[Piece] = None, current_player = "Player 1"):
+    def render_board(self, board: "Board", game: "Game", valid_moves: Optional[List[Tuple[int, int]]] = None, selected_piece: Optional[Piece] = None):
         """Renders the board with optional highlights for valid moves, centered on the screen."""
         self.calculate_cell_size()
         self.screen.fill((255, 255, 255))  # Background color
 
+        right_margin = 300
+        screen_width, screen_height = self.screen.get_width(), self.screen.get_height()
+
+        # Calculate available space for the board
+        available_width = screen_width - right_margin
+        available_height = screen_height
+
+        # Calculate cell size to fit within available space
+        cell_width = available_width // self.cols
+        cell_height = available_height // self.rows
+        self.cell_size = min(cell_width, cell_height)
+
+        # Calculate offsets for centering the board
         board_width = self.cell_size * self.cols
         board_height = self.cell_size * self.rows
-
-        x_offset = (self.screen.get_width() - board_width) // 2
-        y_offset = (self.screen.get_height() - board_height) // 2
+        x_offset = (available_width - board_width) // 2
+        y_offset = (screen_height - board_height) // 2
         
 
         for y, row in enumerate(board.grid):
@@ -117,11 +97,19 @@ class Renderer:
 
                 # Highlight valid moves
                 if piece and piece.protected: #lalagyan ko pa ng or opponent.piece.protected
-                    pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)  # Default border for the cell
+                    pygame.draw.rect(self.screen, (255, 0, 0), rect, 2)  # Default border for the cell
                 elif valid_moves and (y, x) in valid_moves:
                     pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)
                     inner_rect = rect.inflate(-4, -4)
                     pygame.draw.rect(self.screen, (0, 255, 0), inner_rect)
+                elif board.get_valid_dropping_points and selected_piece in board.get_captured_pieces(game.current_player):
+                    valid_list = board.get_valid_dropping_points(board.get_all_empty_cells(), board.get_invalid_dropping_points())
+                    if (y, x) in valid_list:
+                        pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)
+                        inner_rect = rect.inflate(-4, -4)
+                        pygame.draw.rect(self.screen, (0, 0, 200), inner_rect)
+                    else:
+                        pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)
                 else:
                     pygame.draw.rect(self.screen, (200, 200, 200), rect, 2)
                 # Draw the piece if present
@@ -135,43 +123,11 @@ class Renderer:
                             (x * self.cell_size + x_offset + (self.cell_size - image_size) // 2,
                             y * self.cell_size + y_offset + (self.cell_size - image_size) // 2)
                         )
-
+        
         self.render_captured_pieces(board)
-        self.render_current_player(current_player)
-
+        #self.render_highlight
         pygame.display.flip()
 
-    def render_current_player(self, current_player):
-        """Renders the current player label on the right side of the screen."""
-        font = pygame.font.Font(None, 36)
-        screen_width = self.screen.get_width()
-        screen_height = self.screen.get_height()
-
-        # Render the "Current Player:" label
-        label_text = "Current Player:"
-        current_player_label = font.render(label_text, True, (0, 0, 0))
-        label_width = current_player_label.get_width()
-        
-        # Calculate position for the label (top-right corner)
-        label_x = screen_width - label_width - 200  # Add some padding from the right edge
-        label_y = screen_height * 0.2  # 20% down from the top
-
-        self.screen.blit(current_player_label, (label_x, label_y))
-
-        # Render the current player's name below the label
-        player_text = "Player 1" if current_player == "Player 1" else "Player 2"
-        current_player_name = font.render(player_text, True, (0, 0, 0))
-        name_width = current_player_name.get_width()
-
-        # Position the player's name centered below the label
-        name_x = screen_width - name_width - 100  # Align with label_x
-        name_y = label_y 
-
-        self.screen.blit(current_player_name, (name_x, name_y))
-
-            
-
-    
     def render_winner(self, winner: str):
         """
         Renders a "Player _ wins" message with a semi-transparent white background.
@@ -189,6 +145,144 @@ class Renderer:
         self.screen.blit(text, text_rect)
         pygame.display.flip()
         #pygame.display.update()
+    def render_draw(self):
+        """
+        Renders a "Player _ wins" message with a semi-transparent white background.
+
+        Args:
+            winner (str): The name of the winning player (e.g., "Player 1" or "Player 2").
+        """
+        print(f"Rendering draw")  
+        overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((255, 255, 255, 153))
+        font = pygame.font.Font(None, 50)
+        text = font.render(f"Game is draw!", True, (255, 0, 0))
+        text_rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
+        self.screen.blit(overlay, (0, 0))
+        self.screen.blit(text, text_rect)
+        pygame.display.flip()
+
+    def render_captured_pieces(self, board: "Board") -> Dict[str, List[Tuple[Piece, pygame.Rect]]]:
+        """Render captured pieces beside the main board."""
+        self.captured_piece_rects: Dict[str, List[Tuple[Piece, pygame.Rect]]] = {"Player 1": [], "Player 2": []}
+        self.calculate_cell_size()
+        cell_size = self.cell_size
+        right_margin = 300
+        screen_width, screen_height = self.screen.get_width(), self.screen.get_height()
+
+        # Calculate available space for the board
+        available_width = screen_width - right_margin
+        available_height = screen_height
+
+        # Calculate cell size to fit within available space
+        cell_width = available_width // self.cols
+        cell_height = available_height // self.rows
+        self.cell_size = min(cell_width, cell_height)
+
+        # Calculate offsets for centering the board
+        board_width = self.cell_size * self.cols
+        board_height = self.cell_size * self.rows
+        self.x_offset = (available_width - board_width) // 2
+        self.y_offset = (screen_height - board_height) // 2
+
+        # Define captured pieces area
+        captured_area_start_x = board_width + self.x_offset + 20  # Right of the board
+        captured_area_start_y = self.y_offset
+
+        # Calculate maximum pieces per row dynamically
+        max_pieces_per_row = max(3, min(5, (screen_width - captured_area_start_x) // cell_size))
+
+        # Render text for Player 1's captured pieces
+        font = pygame.font.Font(None, cell_size // 3)
+        player1_text = font.render("Captured Pieces (Player 1)", True, (0, 0, 0))  # Black text
+        player1_text_x = captured_area_start_x
+        player1_text_y = captured_area_start_y + 10  # A bit of padding above the pieces
+        self.screen.blit(player1_text, (player1_text_x, player1_text_y))
+
+        # Render Player 1's captured pieces (top-right section)
+        y_offset = player1_text_y + 30  # Add padding below the text
+        for i, piece in enumerate(board.captured_pieces_player1):
+            row = i // max_pieces_per_row
+            col = i % max_pieces_per_row
+            piece_x = captured_area_start_x + col * cell_size
+            piece_y = y_offset + row * cell_size
+
+            image = self.images.get(piece.name)
+            if image:
+                image = pygame.transform.scale(image, (cell_size - 20, cell_size - 20))
+                rect = self.screen.blit(image, (piece_x, piece_y))
+                self.captured_piece_rects["Player 1"].append((piece, rect))
+
+        # Render text for Player 2's captured pieces
+        player2_text = font.render("Captured Pieces (Player 2)", True, (0, 0, 0))  # Black text
+        player2_text_x = captured_area_start_x
+        # print(f"cell_size for rendering: {cell_size}")
+        player2_text_y = (cell_size * (self.rows//2)) + y_offset - 25
+        self.screen.blit(player2_text, (player2_text_x, player2_text_y))
+
+        # Render Player 2's captured pieces (below Player 1's section)
+        y_offset = player2_text_y + 30  # Add padding below the text
+        for i, piece in enumerate(board.captured_pieces_player2):
+            row = i // max_pieces_per_row
+            col = i % max_pieces_per_row
+            piece_x = captured_area_start_x + col * cell_size
+            piece_y = y_offset + row * cell_size
+
+            image = self.images.get(piece.name)
+            if image:
+                image = pygame.transform.scale(image, (cell_size - 20, cell_size - 20))
+                rect = self.screen.blit(image, (piece_x, piece_y))
+                self.captured_piece_rects["Player 2"].append((piece, rect))
+
+        # print(f"captured_rects: {self.captured_piece_rects}")
+        return self.captured_piece_rects
+
+    def render_current_player(self, current_player: str) -> Dict[str, List[Tuple[str, pygame.Rect]]]:
+        """Render current player label and name dynamically on the screen."""
+        self.current_player_rects: Dict[str, List[Tuple[str, pygame.Rect]]] = {"Player 1": [], "Player 2": []}
+        self.calculate_cell_size()
+        cell_size = self.cell_size
+        right_margin = 300
+        screen_width, screen_height = self.screen.get_width(), self.screen.get_height()
+
+        # Calculate available space for the board
+        available_width = screen_width - right_margin
+        available_height = screen_height
+
+        # Calculate cell size to fit within available space
+        cell_width = available_width // self.cols
+        cell_height = available_height // self.rows
+        self.cell_size = min(cell_width, cell_height)
+
+        # Calculate offsets for centering the board
+        board_width = self.cell_size * self.cols
+        board_height = self.cell_size * self.rows
+        self.x_offset = (available_width - board_width) // 2
+        self.y_offset = (screen_height - board_height) // 2
+
+        # Define current player area
+        current_player_area_start_x = board_width + self.x_offset + 20  # Right of the board
+        current_player_area_start_y = self.y_offset
+
+        # Render text for current player label
+        font = pygame.font.Font(None, cell_size // 3)
+        player_label_text = "Current Player:"
+        player_label = font.render(player_label_text, True, (0, 0, 0))  # Black text
+        player_label_x = current_player_area_start_x
+        player_label_y = current_player_area_start_y + screen_height * 0.75 # Padding above the name
+        self.screen.blit(player_label, (player_label_x, player_label_y))
+
+        # Render current player's name
+        player_name = "Player 1" if current_player == "Player 1" else "Player 2"
+        current_player_name = font.render(player_name, True, (0, 0, 0))
+        name_width = current_player_name.get_width()
+
+        # Position the player's name below the label
+        name_x = current_player_area_start_x + (cell_size // 2) - (name_width // 2)  # Center name under the label
+        name_y = player_label_y + player_label.get_height() + 10  # Padding below the label
+        self.screen.blit(current_player_name, (name_x, name_y))
+
+        return self.current_player_rects
 
     def render_play_again_button(self):
         button_width, button_height = 200, 50
@@ -198,8 +292,13 @@ class Renderer:
         self.play_again_button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
         pygame.draw.rect(self.screen, (0, 128, 0), self.play_again_button_rect) 
 
-        font = pygame.font.Font(None, 36)
+        font = pygame.font.Font(None, 30)
         text_surface = font.render("Play Again", True, (255, 255, 255))  
         text_rect = text_surface.get_rect(center=self.play_again_button_rect.center)
         self.screen.blit(text_surface, text_rect)
 
+    def highlight_flag(self, selected_piece: Optional[Piece], captured_pieces: Sequence[Piece]):
+        if selected_piece and selected_piece in captured_pieces:
+            return True
+        else:
+            return False

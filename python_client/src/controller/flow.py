@@ -1,8 +1,12 @@
 import pygame
 from controller.input_handler import InputHandler
+from typing import TYPE_CHECKING
+from view.renderer import Renderer
+if TYPE_CHECKING:
+    from model.game import Game
 
 class GameController:
-    def __init__(self, game, renderer):
+    def __init__(self, game: "Game", renderer: Renderer):
         self.game = game
         self.renderer = renderer
         self.input_handler = InputHandler()
@@ -23,16 +27,15 @@ class GameController:
                         self.reset_game()  
                 else:
                     self.input_handler.handle_event(event, self.game)
-                    self.input_handler.handle_click(event)
             
             if not self.game.game_over:
                 self.renderer.render_board(
-                    self.game.board,
+                    self.game.board, 
+                    self.game,
                     valid_moves=self.input_handler.valid_moves,  
-                    selected_piece=self.input_handler.selected_piece,
-                    current_player=self.game.current_player
-                    # captured_pieces=self.game.board.get_captured_pieces(self.game.current_player)
+                    selected_piece=self.input_handler.selected_piece  
                 )
+                self.renderer.render_current_player(self.game.current_player)
             else:
                 # if not self.play_again_button_rendered:
                 #     self.renderer.render_winner(self.game.winner)
@@ -42,13 +45,17 @@ class GameController:
                 if self.wait_after_game_over:
                     self.renderer.render_board(
                         self.game.board,
+                        self.game,
                         valid_moves=self.input_handler.valid_moves,  
-                        selected_piece=self.input_handler.selected_piece,
+                        selected_piece=self.input_handler.selected_piece  
                     ) # force to show final board state
                     pygame.display.flip()  
                     self.wait_after_game_over = False
                 elif not self.play_again_button_rendered:
-                    self.renderer.render_winner(self.game.winner)  
+                    if self.game.check_draw():  # Check if the game is a draw
+                        self.renderer.render_draw()  # Render draw visually
+                    elif self.game.winner:  # If there's a winner
+                        self.renderer.render_winner(self.game.winner)
                     self.renderer.render_play_again_button() 
                     self.play_again_button_rendered = True
              

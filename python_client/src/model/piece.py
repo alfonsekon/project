@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Tuple, TYPE_CHECKING, Optional
+if TYPE_CHECKING:
+    from model.board import Board
 
 class Piece(ABC):
     def __init__(self, name: str, owner: str, protected: bool = False):
@@ -11,12 +13,12 @@ class Piece(ABC):
         return f"{self.name} ({self.owner}) {'[Protected]' if self.protected else ''}"
 
     @abstractmethod
-    def valid_moves(self, position: Tuple[int, int], board) -> List[Tuple[int, int]]:
+    def valid_moves(self, position: Tuple[int, int], board: "Board") -> List[Tuple[int, int]]:
         """Return a list of valid moves based on the piece type."""
         pass
 
-    def _calculate_moves(self, position: Tuple[int, int], directions: List[Tuple[int, int]], board) -> List[Tuple[int, int]]:
-        moves = []
+    def _calculate_moves(self, position: Tuple[int, int], directions: List[Tuple[int, int]], board: "Board") -> List[Tuple[int, int]]:
+        moves: List[Tuple[int, int]] = []
         for dx, dy in directions:
             new_x = position[0] + dx
             new_y = position[1] + dy
@@ -25,7 +27,8 @@ class Piece(ABC):
             # print(f"board_grid[0]: {len(board.grid[0])}")
             # print(f"board_grid: {len(board.grid)}")
             if 0 <= new_x < len(board.grid) and 0 <= new_y < len(board.grid[0]):
-                if board.grid[new_x][new_y] is None or board.grid[new_x][new_y].owner != self.owner:
+                piece: Optional[Piece] = board.grid[new_x][new_y]
+                if piece is None or piece.owner != self.owner:
                     moves.append((new_x, new_y))
         return moves
 
@@ -33,7 +36,7 @@ class Mime(Piece):
     def __init__(self, owner: str):
         super().__init__("Mime", owner, protected=True)
 
-    def valid_moves(self, position: Tuple[int, int], board) -> List[Tuple[int, int]]:
+    def valid_moves(self, position: Tuple[int, int], board: "Board") -> List[Tuple[int, int]]:
         # valid moves are:
         # (0,0) (0,1) (0,2)        (-1,-1) (-1,0) (-1,1)
         # (1,0) (1,1) (1,2)   ->   (0,-1)    x    (0,1)
@@ -46,7 +49,7 @@ class Goldqueen(Piece):
     def __init__(self, owner: str):
         super().__init__("Goldqueen", owner)
 
-    def valid_moves(self, position: Tuple[int, int], board) -> List[Tuple[int, int]]:
+    def valid_moves(self, position: Tuple[int, int], board: "Board") -> List[Tuple[int, int]]:
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         return self._calculate_moves(position, directions, board)
 
@@ -54,7 +57,7 @@ class Sighducky(Piece): #2 steps forward, 1 step back
     def __init__(self, owner: str):
         super().__init__("Sighducky", owner)
 
-    def valid_moves(self, position: Tuple[int, int], board) -> List[Tuple[int, int]]:
+    def valid_moves(self, position: Tuple[int, int], board: "Board") -> List[Tuple[int, int]]:
         if self.owner == "Player 1":
             directions = [(1, -1), (2, -2), (1, 1), (2, 2), (-1, -1), (-1, 1)]
         else:
@@ -65,7 +68,7 @@ class Monkey(Piece):
     def __init__(self, owner: str):
         super().__init__("Monkey", owner)
 
-    def valid_moves(self, position: Tuple[int, int], board) -> List[Tuple[int, int]]:
+    def valid_moves(self, position: Tuple[int, int], board: "Board") -> List[Tuple[int, int]]:
         if self.owner == "Player 1":
             directions = [(1, 0)] 
         else:
@@ -76,7 +79,7 @@ class Charman(Piece):
     def __init__(self, owner: str):
         super().__init__("Charman", owner, protected=True)
 
-    def valid_moves(self, position: Tuple[int, int], board) -> List[Tuple[int, int]]:
+    def valid_moves(self, position: Tuple[int, int], board: "Board") -> List[Tuple[int, int]]:
         directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
         return self._calculate_moves(position, directions, board)
 
@@ -84,7 +87,7 @@ class Clefairy(Piece):
     def __init__(self, owner: str):
         super().__init__("Clefairy", owner)
 
-    def valid_moves(self, position: Tuple[int, int], board) -> List[Tuple[int, int]]:
+    def valid_moves(self, position: Tuple[int, int], board: "Board") -> List[Tuple[int, int]]:
         if self.owner == "Player 1":
             directions = [(0, -1), (1, 0), (0, 1)]
         else:
